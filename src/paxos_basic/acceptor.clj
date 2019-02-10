@@ -31,7 +31,8 @@
   (if (not= 1 (compare-min-prop-to-proposer-prop state prepare-req))
     (assoc state
            :min-prop-round (prepare-req :prop-round)
-           :min-prop-server-id (prepare-req :server-id))
+           :min-prop-server-id (prepare-req :server-id)
+           :phase :prepare)
     state))
 
 (defn send-prepare-response
@@ -49,11 +50,12 @@
            :min-prop-round (accept-req :prop-round)
            :min-prop-server-id (accept-req :server-id)
            :accepted-prop (accept-req :prop-round)
-           :accepted-value (accept-req :value))
+           :accepted-value (accept-req :value)
+           :phase :accept)  
     state))
 
 (defn send-accept-response
   "Send the accept response
   to the proposer"
-  [state send-fn]
-  (send-fn (state :accepted-prop)))
+  [state sender-fn]
+  (sender-fn (state :accepted-prop)))
