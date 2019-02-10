@@ -7,6 +7,7 @@
    :prop-num 0
    :value value
    :phase :prepare
+   :acceptor-cnt 0
    :responses []})
 
 (defn send-prepare-request
@@ -19,7 +20,7 @@
   "Get the number of response
   needed to qualify for a majority"
   [state]
-  ((comp inc #(quot % 2) count) (state :responses)))
+  ((comp inc #(quot % 2)) (state :acceptor-cnt)))
 
 (defn add-response
   "Add a response to the state"
@@ -44,18 +45,21 @@
            nil
            (apply max %)))))
 
-(defn replace-value
-  "Reset the value of the proposer
+(defn prepare->accept-req
+  "Transition the state from the
+  prepare to the accept phase:
+  
+  1. Reset the value of the proposer
   with the accepted value of the
   highest accepted proposal, when available.
-  Also, modify :phase to signal the start
-  of the accept phase."
+  2. Modify :phase value
+  3. Empty the :responses vector"
   [state]
   (let [new-value (get-highest-accepted-value state)]
     (-> (if (some? new-value)
           (assoc state :value new-value)
           state)
-        (assoc :phase :accept))))
+        (assoc :phase :accept :responses []))))
 
 (defn send-accept-request
   "Send the accept request
