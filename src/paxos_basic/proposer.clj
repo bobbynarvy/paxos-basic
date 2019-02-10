@@ -6,6 +6,7 @@
   {:server-id server-id
    :prop-num 0
    :value value
+   :phase :prepare
    :responses []})
 
 (defn send-prepare-request
@@ -46,12 +47,15 @@
 (defn replace-value
   "Reset the value of the proposer
   with the accepted value of the
-  highest accepted proposal"
+  highest accepted proposal, when available.
+  Also, modify :phase to signal the start
+  of the accept phase."
   [state]
   (let [new-value (get-highest-accepted-value state)]
-    (if (some? new-value)
-      (assoc state :value new-value)
-      state)))
+    (-> (if (some? new-value)
+          (assoc state :value new-value)
+          state)
+        (assoc :phase :accept))))
 
 (defn send-accept-request
   "Send the accept request
