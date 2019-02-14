@@ -3,7 +3,8 @@
 (defn init-proposer
   "Create the initial proposer state"
   [server-id value]
-  {:server-id server-id
+  {:message-id (.toString (java.util.UUID/randomUUID))
+   :server-id server-id
    :prop-num 0
    :value value
    :phase :prepare
@@ -23,9 +24,13 @@
   ((comp inc #(quot % 2)) (state :acceptor-cnt)))
 
 (defn add-response
-  "Add a response to the state"
+  "Add a response to the state,
+  filtering out responses that do not
+  correspond to the current message ID"
   [state response]
-  (assoc state :responses (conj (state :responses) response)))
+  (if (= (state :message-id) (response :message-id))
+    (assoc state :responses (conj (state :responses) response))
+    state))
 
 (defn responses-enough?
   "Check whether the majority of
@@ -35,15 +40,14 @@
       (get-response-majority-size state)))
 
 (defn get-highest-accepted-value
-  "Get the highest accepted value
-  from the high accepted proposal
+  "Get the accepted value
+  from the highest accepted proposal
   among the responses received"
   [{responses :responses}]
-  (->> (filter #(contains? % :accepted-value))
-       (map #(get % :accepted-value))
-       (#(if (zero? (count %))
-           nil
-           (apply max %)))))
+  (when (< 0 (count responses))
+    (-> (sort-by :accepted-prop responses)
+        (first)
+        (get :accepted-value))))
 
 (defn prepare->accept-req
   "Transition the state from the
@@ -52,8 +56,9 @@
   1. Reset the value of the proposer
   with the accepted value of the
   highest accepted proposal, when available.
-  2. Modify :phase value
-  3. Empty the :responses vector"
+  2. Create a new message ID
+  3. Modify :phase value
+  4. Empty the :responses vector"
   [state]
   (let [new-value (get-highest-accepted-value state)]
     (-> (if (some? new-value)
