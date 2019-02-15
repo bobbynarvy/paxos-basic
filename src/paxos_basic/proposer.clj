@@ -1,9 +1,11 @@
 (ns paxos-basic.proposer)
 
+(defn- create-uuid [] (.toString (java.util.UUID/randomUUID)))
+
 (defn init-proposer
   "Create the initial proposer state"
   [server-id value]
-  {:message-id (.toString (java.util.UUID/randomUUID))
+  {:message-id (create-uuid)
    :server-id server-id
    :prop-num 0
    :value value
@@ -44,9 +46,9 @@
   from the highest accepted proposal
   among the responses received"
   [{responses :responses}]
-  (when (< 0 (count responses))
+  (when (not (empty? responses))
     (-> (sort-by :accepted-prop responses)
-        (first)
+        (last)
         (get :accepted-value))))
 
 (defn prepare->accept-req
@@ -60,11 +62,11 @@
   3. Modify :phase value
   4. Empty the :responses vector"
   [state]
-  (let [new-value (get-highest-accepted-value state)]
+  (let [new-value (get-highest-accepted-value state)] 
     (-> (if (some? new-value)
           (assoc state :value new-value)
           state)
-        (assoc :phase :accept :responses []))))
+        (assoc :message-id (create-uuid) :phase :accept :responses []))))
 
 (defn send-accept-request
   "Send the accept request
