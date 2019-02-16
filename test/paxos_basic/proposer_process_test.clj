@@ -5,6 +5,8 @@
 (init-proposer :test-id :test-value)
 
 (testing "Proposer process"
+  ;; To start off, let's add 5 acceptors. This means that at least 3 responses
+  ;; to any requests are needed to trigger the proposer to do its next step.
   (testing "accepts new acceptor"
     (add-acceptor :acceptor-test)
     (is (= [:acceptor-test] @acceptors))
@@ -12,8 +14,8 @@
     (dotimes [n 4]
       (add-acceptor (keyword (str "acceptor-test-" n))))) ;; add more acceptors to make 5 acceptors
   ;; Here, let's just assume that the proposer has successfully sent its prepare requests.
-  ;; In this scenario, the proposer will be receiving 3 response. The one with the hight accepted
-  ;; proposal has a value of "value!" which the proposer thould update its value to
+  ;; In this scenario, the proposer will be receiving 3 responses. The one with the highest accepted
+  ;; proposal has a value of "value!" which the proposer should update its value to
   (testing "can receive a prepare response"
     (recv-prepare-resp {:accepted-value nil
                         :accepted-prop nil
@@ -36,4 +38,12 @@
   (testing "associates new accept request information"
     (is (not= old-message-id (@state :message-id)))
     (is (empty? (@state :responses)))
-    (is (= :accept (@state :phase)))))
+    (is (= :accept (@state :phase))))
+  (testing "ignores a response that arrived late"
+    (recv-prepare-resp {:accepted-value nil
+                        :accepted-prop nil
+                        :message-id old-message-id})
+    (is (empty? (@state :responses))))
+  ;; Here, let's assume that accept requests have been successfully sent.
+  ;; In this scenario, the proposer will be receiving 3 responses
+  )
