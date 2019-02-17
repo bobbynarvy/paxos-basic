@@ -27,7 +27,7 @@
                         :message-id "something-else"})
     (is (= 1 (count (@state :responses)))))
   (testing "sets its value to the response value of the prepare request with the highest proposal number"
-    (def old-message-id (@state :meesage-id)) ;; cache old message id before it is changed
+    (def old-message-id (@state :message-id)) ;; cache old message id before it is changed
     (recv-prepare-resp {:accepted-value nil
                         :accepted-prop nil
                         :message-id (@state :message-id)})
@@ -36,14 +36,32 @@
                         :message-id (@state :message-id)})
     (is (= "value!" (@state :value))))
   (testing "associates new accept request information"
-    (is (not= old-message-id (@state :message-id)))
+    (def new-message-id (@state :message-id))
+    (is (not= old-message-id new-message-id))
     (is (empty? (@state :responses)))
     (is (= :accept (@state :phase))))
   (testing "ignores a response that arrived late"
     (recv-prepare-resp {:accepted-value nil
                         :accepted-prop nil
                         :message-id old-message-id})
-    (is (empty? (@state :responses))))
+    (is (empty? (@state :responses)))
+    ;; check that the late response did not trigger a change
+    ;; in the prepare request
+    (is (= new-message-id (@state :message-id))))
   ;; Here, let's assume that accept requests have been successfully sent.
-  ;; In this scenario, the proposer will be receiving 3 responses
-  )
+  ;; In this scenario, the proposer will be receiving 3 responses with 
+  ;; one result having a minimum proposal higher than that of the proposer's,
+  ;; thus the proposer's request failing.
+  ;;
+  ;; The first accept response is the one with the higher accepted proposal number
+  (recv-accept-resp {:accepted-prop 1
+                     :message-id (@state :message-id)})
+  (recv-accept-resp {:accepted-prop 0
+                     :message-id (@state :message-id)})
+  (def last-prepare-resp (recv-accept-resp {:accepted-prop 0
+                                            :message-id (@state :message-id)}))
+  (testing "recognizes that its prepare request has not been accepted"
+    (is (false? last-prepare-resp)))
+  (testing "is reset when its value is not accepted"
+    (is (= 1 (@state :prop-num)))
+    (is (empty? (@state :responses)))))

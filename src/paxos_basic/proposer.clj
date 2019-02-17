@@ -34,11 +34,11 @@
     (assoc state :responses (conj (state :responses) response))
     state))
 
-(defn responses-enough?
-  "Check whether the majority of
-  responses have been received"
+(defn has-majority-responses?
+  "Returns true only when the exact majority of
+  responses have been received, not more, not less."
   [state]
-  (>= (count (state :responses))
+  (= (count (state :responses))
       (get-response-majority-size state)))
 
 (defn get-highest-accepted-value
@@ -86,3 +86,17 @@
        (filter #(> % prop-num))
        (count)
        (< 0)))
+
+(defn reset-proposer
+  "Reset the proposer:
+  
+  1. Incrememnt proposal number
+  2. Create a new message ID
+  3. Modify :phase value
+  4. Empty the :responses vector"
+  [state]
+  (assoc state
+        :prop-num (inc (state :prop-num))
+        :message-id (create-uuid) 
+        :phase :prepare
+        :responses []))

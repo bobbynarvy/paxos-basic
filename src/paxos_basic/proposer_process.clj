@@ -30,7 +30,7 @@
   proposer value if needed."
   [prepare-resp]
   (swap! state proposer/add-response prepare-resp)
-  (when (proposer/responses-enough? @state)
+  (when (proposer/has-majority-responses? @state)
     (swap! state proposer/prepare->accept-req)))
 
 (defn request-accept
@@ -41,13 +41,19 @@
     (proposer/send-accept-request @state
                                   (partial messenger-fn acceptor))))
 
-;; to improve, reinitiate workflow when value not chosen
-;; this also means: 1) change init-proposer params 2) 
 (defn recv-accept-resp
   "Receive an accept response. Once majority
   of responses are received, check whether
-  the proposer's value has been chosen."
+  the proposer's value has been chosen.
+  
+  Returns a boolean value when a majority of
+  responses have been received, the value of which 
+  depends on whether the proposer's value has been
+  chosen."
   [accept-resp]
   (swap! state proposer/add-response accept-resp)
-  (when (proposer/responses-enough? @state)
-    (proposer/value-is-chosen? state)))
+  (when (proposer/has-majority-responses? @state)
+    (let [chosen? (proposer/value-is-chosen? state)]
+      (when (not chosen?)
+        (swap! state proposer/reset-proposer))
+      chosen?)))
