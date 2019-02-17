@@ -58,10 +58,10 @@
                      :message-id (@state :message-id)})
   (recv-accept-resp {:accepted-prop 0
                      :message-id (@state :message-id)})
-  (def last-prepare-resp (recv-accept-resp {:accepted-prop 0
+  (def last-accept-resp (recv-accept-resp {:accepted-prop 0
                                             :message-id (@state :message-id)}))
   (testing "recognizes that its prepare request has not been accepted"
-    (is (false? last-prepare-resp)))
+    (is (false? last-accept-resp)))
   (testing "is reset when its value is not accepted"
     (is (= 1 (@state :prop-num)))
     (is (empty? (@state :responses)))))
