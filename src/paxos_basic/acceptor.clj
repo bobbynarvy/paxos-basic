@@ -8,10 +8,10 @@
   and -1 when less."
   [{min-prop-round :min-prop-round min-prop-server-id :min-prop-server-id}
    {proposer-prop-round :prop-round proposer-server-id :server-id}]
-  (cond
+  (cond 
     (> min-prop-round proposer-prop-round) 1
     (= min-prop-round proposer-prop-round) (cond
-                                             (> min-prop-server-id proposer-server-id) 1
+                                             (< 0 (compare min-prop-server-id proposer-server-id)) 1
                                              (= min-prop-server-id proposer-server-id) 0
                                              :else -1)
     :else -1))
