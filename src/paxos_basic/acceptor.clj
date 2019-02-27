@@ -35,11 +35,11 @@
            :phase :prepare)
     state))
 
-(defn send-prepare-response
+(defn get-prepare-response
   "Send the prepare response
   to the proposer"
-  [state sender-fn]
-  (sender-fn (select-keys state [:accepted-prop :accepted-value])))
+  [state]
+  (select-keys state [:accepted-prop :accepted-value]))
 
 (defn create-accept-response
   "Create a response to an accept
@@ -54,8 +54,8 @@
            :phase :accept)  
     state))
 
-(defn send-accept-response
+(defn get-accept-response
   "Send the accept response
   to the proposer"
-  [state sender-fn]
-  (sender-fn (state :accepted-prop)))
+  [state]
+  (state :accepted-prop))

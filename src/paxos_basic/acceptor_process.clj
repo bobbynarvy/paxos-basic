@@ -5,14 +5,12 @@
 
 (defn respond-prepare-req
   "Respond to a prepare request"
-  [prepare-req messenger-fn proposer]
+  [prepare-req]
   (swap! state acceptor/create-prepare-response prepare-req)
-  (acceptor/send-prepare-response @state
-                                  (partial messenger-fn proposer)))
+  (acceptor/get-prepare-response @state))
 
 (defn respond-accept-req
   "Respond to an accept request"
-  [accept-req messenger-fn proposer]
+  [accept-req]
   (swap! state acceptor/create-accept-response accept-req)
-  (acceptor/send-accept-response @state
-                                 (partial messenger-fn proposer)))
+  (acceptor/get-accept-response @state))
