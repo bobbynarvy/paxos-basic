@@ -8,7 +8,7 @@
 (defn receive
   "Read a line of textual data from the given socket"
   [socket]
-  (.readLine (io/reader socket)))
+  (line-seq (io/reader socket)))
 
 (defn send
   "Send the given string message out over the given socket"
