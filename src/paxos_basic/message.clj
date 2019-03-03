@@ -14,14 +14,34 @@
 ;;
 ;; A message map is simply a Clojure map containing
 ;; information about the current state in the algorithm
-(ns paxos-basic.message)
+(ns paxos-basic.message
+  (require [clojure.string :as string]))
+
+(defn- str-pair->key-val
+  [key-val-str]
+  (-> (string/split key-val-str #" ")
+      ((fn [ss] {(->> (first ss)
+                      (string/lower-case)
+                      (butlast)
+                      (apply str)
+                      (keyword))
+                 (string/join " " (rest ss))}))))
+
+(defn- key-val->str-pair
+  [[key val]]
+  (str ((comp string/upper-case name) key) ": " val))
 
 (defn str->map
   "Converts a message string to a message map"
-  [message]
-  ())
+  [msg-str]
+  (->> (string/split-lines msg-str)
+       (map str-pair->key-val)
+       (apply merge)))
 
 (defn map->str
   "Converts a message map to a message string"
-  [str]
-  ())
+  [msg-map]
+  (->> (into [] msg-map)
+       (map key-val->str-pair)
+       (string/join "\n")
+       (#(str % "\r\n"))))
