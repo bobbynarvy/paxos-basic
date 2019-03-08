@@ -32,10 +32,10 @@
   (str ((comp string/upper-case name) key) ": " val))
 
 (defn str->map
-  "Converts a message string to a message map"
-  [msg-str]
-  (->> (string/split-lines msg-str)
-       (map str-pair->key-val)
+  "Converts a sequence of message strings into
+  a message map"
+  [msg-strs]
+  (->> (map str-pair->key-val msg-strs)
        (apply merge)))
 
 (defn map->str
