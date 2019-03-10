@@ -8,7 +8,7 @@
 ;; to an acceptor would look like:
 ;;
 ;; PHASE: Accept
-;; SERVER-ID: 123
+;; SERVER-ID: "SOME-SERVER-ID"
 ;; PROP-NUM: 1
 ;; VALUE: Test Value
 ;;
@@ -25,11 +25,17 @@
                       (butlast)
                       (apply str)
                       (keyword))
-                 (string/join " " (rest ss))}))))
+                 (-> (string/join " " (rest ss))
+                     (#(cond (number? (read-string %)) (read-string %) ;; return number 
+                             (= "NIL" %) nil                           ;; return nil
+                             :else %)                                  ;; return string
+                      ))}))))
 
 (defn- key-val->str-pair
   [[key val]]
-  (str ((comp string/upper-case name) key) ": " val))
+  (str ((comp string/upper-case name) key)
+       ": "
+       (#(if (nil? %) "NIL" %) val)))
 
 (defn str->map
   "Converts a sequence of message strings into
@@ -43,5 +49,4 @@
   [msg-map]
   (->> (into [] msg-map)
        (map key-val->str-pair)
-       (string/join "\n")
-       (#(str % "\r\n"))))
+       (string/join "\n")))
