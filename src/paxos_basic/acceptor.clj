@@ -20,7 +20,7 @@
   "Create the initial acceptor state"
   []
   {:min-prop-round 0
-   :min-prop-server-id 0
+   :min-prop-server-id "0"
    :accepted-prop nil
    :accepted-value nil})
 
