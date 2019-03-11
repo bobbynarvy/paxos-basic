@@ -58,4 +58,4 @@
   "Send the accept response
   to the proposer"
   [state]
-  (state :accepted-prop))
+  (select-keys state [:accepted-prop]))
