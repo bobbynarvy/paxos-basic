@@ -8,8 +8,7 @@
 ;; to an acceptor would look like:
 ;;
 ;; PHASE: Accept
-;; SERVER-ID: "SOME-SERVER-ID"
-;; PROP-NUM: 1
+;; PROP-NUM: server1/1
 ;; VALUE: Test Value
 ;;
 ;; A message map is simply a Clojure map containing
@@ -26,9 +25,8 @@
                       (apply str)
                       (keyword))
                  (-> (string/join " " (rest ss))
-                     (#(cond (number? (read-string %)) (read-string %) ;; return number 
-                             (= "NIL" %) nil                           ;; return nil
-                             :else %)                                  ;; return string
+                     (#(cond (= "NIL" %) nil ;; return nil
+                             :else %)        ;; return everything else as string
                       ))}))))
 
 (defn- key-val->str-pair
