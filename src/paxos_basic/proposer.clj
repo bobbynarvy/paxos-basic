@@ -1,15 +1,15 @@
-(ns paxos-basic.proposer)
+(ns paxos-basic.proposer
+  (require [paxos-basic.proposal-num :as prop-num]))
 
 (defn- create-uuid [] (.toString (java.util.UUID/randomUUID)))
 
 (defn init-proposer
   "Create the initial proposer state"
-  [server-id value]
+  [value]
   {:message-id (create-uuid)
-   :server-id server-id
-   :prop-num 0
+   :prop-num (prop-num/create-prop-num (create-uuid))
    :value value
-   :phase :prepare
+   :phase "Prepare"
    :acceptor-cnt 0
    :responses []})
 
@@ -17,7 +17,7 @@
   "Send the prepare request
   to acceptors"
   [state sender-fn]
-  (sender-fn (select-keys state [:server-id :prop-num])))
+  (sender-fn (select-keys state [:prop-num])))
 
 (defn get-response-majority-size
   "Get the number of response
@@ -47,9 +47,9 @@
   among the responses received"
   [{responses :responses}]
   (when (not (empty? responses))
-    (-> (sort-by :accepted-prop responses)
+    (-> (sort-by :prop-num prop-num/compare-prop-nums responses)
         (last)
-        (get :accepted-value))))
+        :accepted-value)))
 
 (defn prepare->accept-req
   "Transition the state from the
@@ -66,14 +66,14 @@
     (-> (if (some? new-value)
           (assoc state :value new-value)
           state)
-        (assoc :message-id (create-uuid) :phase :accept :responses []))))
+        (assoc :message-id (create-uuid) :phase "Accept" :responses []))))
 
 (defn send-accept-request
   "Send the accept request
   to acceptors"
   [state sender-fn]
   (sender-fn (select-keys state
-                          [:server-id :prop-num :value])))
+                          [:prop-num :value])))
 
 (defn value-is-chosen?
   "Check if the proposed value
@@ -82,7 +82,7 @@
   accepted proposal is greater than
   that of the proposer"
   [{responses :responses prop-num :prop-num}]
-  (->> (map #(get % :accepted-prop) responses)
+  (->> (map :accepted-prop responses)
        (filter #(> % prop-num))
        (count)
        (< 0)))
@@ -96,7 +96,7 @@
   4. Empty the :responses vector"
   [state]
   (assoc state
-        :prop-num (inc (state :prop-num))
+        :prop-num (prop-num/inc-prop-num (state :prop-num))
         :message-id (create-uuid) 
-        :phase :prepare
+        :phase "Prepare"
         :responses []))

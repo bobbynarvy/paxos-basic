@@ -7,8 +7,8 @@
 
 (defn init-proposer
   "Initialize the proposer state"
-  [server-id value]
-  (reset! state (proposer/init-proposer server-id value)))
+  [value]
+  (reset! state (proposer/init-proposer value)))
 
 (defn add-acceptor
   "Add an acceptor for later user"
