@@ -2,7 +2,7 @@
   (:require [clojure.test :refer :all]
             [paxos-basic.proposer-process :refer :all]))
 
-(init-proposer :test-id :test-value)
+(init-proposer :test-value)
 
 (testing "Proposer process"
   ;; To start off, let's add 5 acceptors. This means that at least 3 responses
@@ -32,14 +32,14 @@
                         :accepted-prop nil
                         :message-id (@state :message-id)})
     (recv-prepare-resp {:accepted-value "value!"
-                        :accepted-prop 1
+                        :accepted-prop "server/1"
                         :message-id (@state :message-id)})
     (is (= "value!" (@state :value))))
   (testing "associates new accept request information"
     (def new-message-id (@state :message-id))
     (is (not= old-message-id new-message-id))
     (is (empty? (@state :responses)))
-    (is (= :accept (@state :phase))))
+    (is (= "Accept" (@state :phase))))
   (testing "ignores a response that arrived late"
     (recv-prepare-resp {:accepted-value nil
                         :accepted-prop nil
@@ -58,10 +58,11 @@
                      :message-id (@state :message-id)})
   (recv-accept-resp {:accepted-prop 0
                      :message-id (@state :message-id)})
+  (def old-prop-num (@state :prop-num))
   (def last-accept-resp (recv-accept-resp {:accepted-prop 0
-                                            :message-id (@state :message-id)}))
+                                           :message-id (@state :message-id)}))
   (testing "recognizes that its prepare request has not been accepted"
     (is (false? last-accept-resp)))
   (testing "is reset when its value is not accepted"
-    (is (= 1 (@state :prop-num)))
+    (is (not= old-prop-num (@state :prop-num)))
     (is (empty? (@state :responses)))))
