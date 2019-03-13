@@ -5,8 +5,10 @@
   "Convert the proposal number
   from string to map form"
   [prop-num-str]
-  (let [[server-id round-num] (string/split prop-num-str #"/")]
-    {:server-id server-id :round-num (read-string round-num)}))
+  (if (some? prop-num-str)
+    (let [[server-id round-num] (string/split prop-num-str #"/")]
+      {:server-id server-id :round-num (read-string round-num)})
+    {:server-id "0" :round-num 0}))
 
 (defn- map->str
   "Convert the proposal number
