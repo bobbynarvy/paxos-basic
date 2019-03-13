@@ -1,26 +1,10 @@
-(ns paxos-basic.acceptor)
-
-(defn- compare-min-prop-to-proposer-prop
-  "Compares the value of the acceptor's
-  minimum proposal to that of the proposer.
-
-  Returns 1 when it is greater, 0 when equal,
-  and -1 when less."
-  [{min-prop-round :min-prop-round min-prop-server-id :min-prop-server-id}
-   {proposer-prop-round :prop-round proposer-server-id :server-id}]
-  (cond 
-    (> min-prop-round proposer-prop-round) 1
-    (= min-prop-round proposer-prop-round) (cond
-                                             (< 0 (compare min-prop-server-id proposer-server-id)) 1
-                                             (= min-prop-server-id proposer-server-id) 0
-                                             :else -1)
-    :else -1))
+(ns paxos-basic.acceptor
+  (require [paxos-basic.proposal-num :as prop-num]))
 
 (defn init-acceptor
   "Create the initial acceptor state"
   []
-  {:min-prop-round 0
-   :min-prop-server-id "0"
+  {:min-prop "0/0"
    :accepted-prop nil
    :accepted-value nil})
 
@@ -28,11 +12,9 @@
   "Create a response to a prepare
   request from a proposer"
   [state prepare-req]
-  (if (not= 1 (compare-min-prop-to-proposer-prop state prepare-req))
+  (if (not= 1 (prop-num/compare-prop-nums (state :min-prop) (prepare-req :prop-num)))
     (assoc state
-           :min-prop-round (prepare-req :prop-round)
-           :min-prop-server-id (prepare-req :server-id)
-           :phase :prepare)
+           :min-prop (prepare-req :prop-num))
     state))
 
 (defn get-prepare-response
@@ -45,13 +27,11 @@
   "Create a response to an accept
   request from a proposer"
   [state accept-req]
-  (if (not= -1 (compare-min-prop-to-proposer-prop state accept-req))
+  (if (not= 1 (prop-num/compare-prop-nums (state :min-prop) (accept-req :prop-num)))
     (assoc state
-           :min-prop-round (accept-req :prop-round)
-           :min-prop-server-id (accept-req :server-id)
-           :accepted-prop (accept-req :prop-round)
-           :accepted-value (accept-req :value)
-           :phase :accept)  
+           :min-prop (accept-req :prop-num)
+           :accepted-prop (accept-req :prop-num)
+           :accepted-value (accept-req :value))  
     state))
 
 (defn get-accept-response
