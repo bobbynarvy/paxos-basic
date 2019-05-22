@@ -1,10 +1,10 @@
 # paxos-basic
 
+*Work in progress*
+
 A small server that implements the Basic Paxos algorithm.
 
-## Usage
-
-FIXME
+Based on the lecture of Prof. John Ousterhout [online](https://youtu.be/JEpsBg0AO6o).
 
 ## License
 
